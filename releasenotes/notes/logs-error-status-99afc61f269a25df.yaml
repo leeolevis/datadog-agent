@@ -1,0 +1,4 @@
+enhancements:
+  - |
+    Improve Logs agent status by adding errors when breaking the agent.
+    Warnings will be displayed for non-breaking issues
