@@ -105,7 +105,24 @@ var checkCmd = &cobra.Command{
 		s := serializer.NewSerializer(common.Forwarder)
 		agg := aggregator.InitAggregatorWithFlushInterval(s, hostname, "agent", checkCmdFlushInterval)
 		common.SetupAutoConfig(config.Datadog.GetString("confd_path"))
-		cs := collector.GetChecksByNameForConfigs(checkName, common.AC.GetAllConfigs())
+
+		allConfigs := common.AC.GetAllConfigs()
+		for _, conf := range allConfigs {
+			var data map[string]interface{}
+
+			json.Unmarshal(conf.InitConfig, &data)
+			if data == nil {
+				continue
+			}
+			data["set_break_point"] = 0
+
+			j, _ := json.Marshal(data)
+			conf.InitConfig = j
+
+			fmt.Println(string(conf.InitConfig))
+		}
+
+		cs := collector.GetChecksByNameForConfigs(checkName, allConfigs)
 		if len(cs) == 0 {
 			for check, error := range autodiscovery.GetConfigErrors() {
 				if checkName == check {
